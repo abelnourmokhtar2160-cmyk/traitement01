@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcul Traitement Salaire — Final</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #eef2f7;
+    color: #222;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+  }
+  .container {
+    width: 100%;
+    max-width: 1600px;
+    height: calc(100vh - 20px);
+    max-height: 900px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  h1 {
+    text-align: center;
+    color: #1a3a6b;
+    font-size: 22px;
+    margin-bottom: 3px;
+    letter-spacing: 0.4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .type-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: #e8eef7;
+    border-left: 5px solid #1a3a6b;
+    border-radius: 6px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .type-bar > label {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1a3a6b;
+    margin-right: 6px;
+  }
+  .type-btn {
+    padding: 6px 14px;
+    border: 2px solid #1a3a6b;
+    background: #fff;
+    color: #1a3a6b;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .type-btn:hover { background: #dce7f5; }
+  .type-btn.active {
+    background: #1a3a6b;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(26,58,107,0.4);
+  }
+
+  .header-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 10px;
+    padding: 10px 16px;
+    background: #f0f4fa;
+    border-left: 5px solid #1a3a6b;
+    border-radius: 6px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .header-info > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-info label {
+    font-weight: 700;
+    font-size: 15px;
+    white-space: nowrap;
+    color: #1a3a6b;
+  }
+  .header-info select,
+  .header-info input[type="text"],
+  .header-info input[type="number"] {
+    padding: 6px 12px;
+    border: 1px solid #b8c4d6;
+    border-radius: 5px;
+    font-size: 15px;
+    width: 130px;
+    font-weight: 600;
+    background: #fff;
+  }
+  .header-info select.coef-select {
+    background: #fffbe6;
+    color: #b85c00;
+    border-color: #f0e0b0;
+    width: 100px;
+  }
+  .header-info input.salarie-input {
+    background: #fff;
+    color: #1a3a6b;
+    width: 260px;
+  }
+  .header-info input.champ-annees {
+    background: #e8f5e9;
+    border-color: #b8ddc0;
+    color: #1f7a4d;
+    width: 100px;
+  }
+  .header-info .info-note {
+    font-size: 12px;
+    color: #888;
+    font-style: italic;
+    margin-left: 4px;
+  }
+
+  .champ-echel-container { display: flex; }
+  .champ-annees-container { display: none; }
+  .champ-bonif-container { display: flex; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .panel {
+    border: 1px solid #cdd7e5;
+    border-radius: 7px;
+    overflow: hidden;
+    background: #fbfcfe;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .panel-title {
+    background: #1a3a6b;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 10px;
+    text-align: center;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  .panel-title.green  { background: #1f7a4d; }
+  .panel-title.orange { background: #b85c00; }
+  .panel-title.red    { background: #a02020; }
+  .panel-title.purple { background: #6a1b9a; }
+
+  table.calc {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    table-layout: fixed;
+  }
+  table.calc td {
+    padding: 5px 6px;
+    border-bottom: 1px solid #e4e9f0;
+    height: 30px;
+  }
+  table.calc tr:last-child td { border-bottom: none; }
+  table.calc td.label {
+    color: #333;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  table.calc td input {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #c5cfe0;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    height: 26px;
+    font-weight: 600;
+  }
+  table.calc td input[readonly] {
+    background: #f0f4fa;
+    color: #1a3a6b;
+    font-weight: 700;
+    border-color: #dde4ee;
+  }
+  table.calc td input.calc-result {
+    background: #eaf6ee;
+    color: #1f7a4d;
+    font-weight: 700;
+    border-color: #c3e0cd;
+  }
+  table.calc td input.retenue {
+    background: #fdeeee;
+    color: #a02020;
+    font-weight: 700;
+    border-color: #f0c4c4;
+  }
+  table.calc td input.saisie {
+    background: #fffbe6;
+    color: #b85c00;
+    font-weight: 700;
+    border-color: #f0e0b0;
+  }
+  table.calc td input.taux {
+    background: #eef6ff;
+    color: #1a3a6b;
+    font-weight: 700;
+    border-color: #c5d8f0;
+  }
+  table.calc td input.on-off {
+    background: #e8f5e9;
+    color: #1f7a4d;
+    font-weight: 700;
+    border-color: #b8ddc0;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .group-title {
+    background: #dde8f5;
+    color: #1a3a6b;
+    font-weight: 700;
+    font-size: 11px;
+    text-align: center;
+    padding: 4px;
+    letter-spacing: 0.4px;
+    height: 22px !important;
+  }
+
+  /* ---- PRIME DE RENDEMENT ---- */
+  .prime-title {
+    background: #6a1b9a;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    padding: 6px 4px;
+    letter-spacing: 0.5px;
+  }
+  .prime-formula {
+    background: #f3e5f5;
+    color: #6a1b9a;
+    font-size: 10px;
+    text-align: center;
+    padding: 3px 4px;
+    font-style: italic;
+    letter-spacing: 0.2px;
+  }
+
+  .total-bar {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 25px;
+    background: #1a3a6b;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .total-bar span:first-child {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .total-bar .value {
+    font-weight: 700;
+    font-size: 26px;
+    font-family: 'Courier New', monospace;
+    background: #fff;
+    color: #1a3a6b;
+    padding: 6px 22px;
+    border-radius: 6px;
+    min-width: 220px;
+    text-align: right;
+  }
+
+  .btn-bar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  .btn {
+    padding: 8px 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    color: #fff;
+  }
+  .btn-reset { background: #b85c00; }
+  .btn-reset:hover { background: #9a4d00; }
+  .btn-print { background: #1f7a4d; }
+  .btn-print:hover { background: #166138; }
+
+  #printArea { display: none; }
+
+  @media print {
+    @page { size: A4 portrait; margin: 8mm; }
+    html, body {
+      height: auto !important;
+      overflow: visible !important;
+      background: #fff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    body > .container { display: none !important; }
+    #printArea {
+      display: block !important;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #000;
+      font-size: 11px;
+      margin: 0;
+      padding: 0;
+    }
+    #printArea .rp-header {
+      text-align: center;
+      border-bottom: 2px solid #1a3a6b;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+    #printArea .rp-header .rp-rep {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #444;
+    }
+    #printArea .rp-header .rp-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1a3a6b;
+      margin: 4px 0;
+      letter-spacing: 1px;
+    }
+    #printArea .rp-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      background: #f0f4fa;
+      border-left: 3px solid #1a3a6b;
+    }
+    #printArea .rp-info div { line-height: 1.6; }
+    #printArea .rp-info strong { color: #1a3a6b; }
+    #printArea table.rp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+      margin-bottom: 8px;
+    }
+    #printArea table.rp-table td {
+      padding: 4px 6px;
+      border: 1px solid #c5cfe0;
+      vertical-align: middle;
+    }
+    #printArea table.rp-table td.lbl {
+      font-weight: 600;
+      background: #f7f9fc;
+      width: 45%;
+    }
+    #printArea table.rp-table td.val {
+      text-align: right;
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      width: 55%;
+    }
+    #printArea .rp-cols { display: flex; gap: 12px; }
+    #printArea .rp-cols > div { flex: 1; }
+    #printArea .rp-cols h4 {
+      background: #1a3a6b;
+      color: #fff;
+      font-size: 10.5px;
+      padding: 4px 8px;
+      margin-bottom: 4px;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+    #printArea .rp-cols h4.green { background: #1f7a4d; }
+    #printArea .rp-cols h4.red   { background: #a02020; }
+    #printArea .rp-cols h4.purple { background: #6a1b9a; }
+
+    #printArea .rp-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      margin-top: 10px;
+      background: #1a3a6b;
+      color: #fff;
+      border-radius: 4px;
+    }
+    #printArea .rp-total .lbl {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    #printArea .rp-total .val {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: 'Courier New', monospace;
+      background: #fff;
+      color: #1a3a6b;
+      padding: 3px 14px;
+      border-radius: 3px;
+    }
+
+    #printArea .rp-signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+      font-size: 11px;
+    }
+    #printArea .rp-signatures > div { text-align: center; width: 30%; }
+    #printArea .rp-signatures .sig-title { font-weight: 700; margin-bottom: 35px; }
+    #printArea .rp-signatures .sig-line {
+      border-top: 1px solid #000;
+      padding-top: 3px;
+      font-size: 9px;
+      color: #555;
+    }
+  }
+
+  @media (max-height: 800px) {
+    h1 { font-size: 19px; }
+    .subtitle { font-size: 11px; margin-bottom: 6px; }
+    table.calc { font-size: 12px; }
+    table.calc td { height: 22px; padding: 2px 4px; }
+    table.calc td.label { font-size: 11px; }
+    table.calc td input { font-size: 12px; height: 20px; }
+    .panel-title { font-size: 12px; padding: 5px 7px; }
+    .group-title { font-size: 9.5px; height: 16px !important; }
+    .prime-title { font-size: 11px; padding: 4px 3px; }
+    .prime-formula { font-size: 9px; }
+    .header-info label { font-size: 13px; }
+    .header-info select,
+    .header-info input[type="text"],
+    .header-info input[type="number"] { font-size: 13px; width: 110px; padding: 5px 9px; }
+    .header-info select.coef-select { width: 85px; }
+    .header-info input.salarie-input { width: 220px; font-size: 13px; }
+    .type-btn { padding: 5px 11px; font-size: 12px; }
+    .total-bar { font-size: 16px; padding: 10px 20px; margin-top: 8px; }
+    .total-bar .value { font-size: 22px; padding: 5px 18px; min-width: 190px; }
+    .btn { padding: 6px 22px; font-size: 12.5px; }
+  }
+  @media (max-height: 700px) {
+    h1 { font-size: 17px; }
+    .subtitle { display: none; }
+    table.calc { font-size: 11px; }
+    table.calc td { height: 19px; padding: 1px 3px; }
+    table.calc td.label { font-size: 10px; }
+    table.calc td input { font-size: 11px; height: 17px; padding: 1px 3px; }
+    .panel-title { font-size: 11px; padding: 4px 5px; }
+    .group-title { font-size: 8.5px; height: 14px !important; }
+    .prime-title { font-size: 10px; padding: 3px 2px; }
+    .prime-formula { font-size: 8px; }
+    .header-info { padding: 7px 12px; margin-bottom: 8px; gap: 12px; }
+    .header-info label { font-size: 12px; }
+    .header-info select,
+    .header-info input[type="text"],
+    .header-info input[type="number"] { font-size: 12px; width: 100px; padding: 4px 7px; }
+    .header-info select.coef-select { width: 75px; }
+    .header-info input.salarie-input { width: 200px; font-size: 12px; }
+    .type-bar { padding: 6px 10px; margin-bottom: 8px; }
+    .type-bar > label { font-size: 12px; }
+    .type-btn { padding: 4px 9px; font-size: 11px; }
+    .total-bar { font-size: 14px; padding: 8px 18px; }
+    .total-bar .value { font-size: 20px; padding: 4px 15px; min-width: 170px; }
+    .btn { padding: 5px 18px; font-size: 12px; }
+  }
+  @media (max-height: 600px) {
+    h1 { font-size: 15px; }
+    .container { padding: 8px 14px; }
+    table.calc { font-size: 10px; }
+    table.calc td { height: 16px; padding: 1px 2px; }
+    table.calc td.label { font-size: 9px; }
+    table.calc td input { font-size: 10px; height: 15px; }
+    .panel-title { font-size: 10px; padding: 3px 4px; }
+    .group-title { font-size: 8px; height: 12px !important; }
+    .prime-title { font-size: 9px; padding: 2px 2px; }
+    .prime-formula { font-size: 7.5px; }
+    .header-info { padding: 5px 10px; }
+    .header-info label { font-size: 11px; }
+    .header-info select,
+    .header-info input[type="text"],
+    .header-info input[type="number"] { font-size: 11px; width: 90px; padding: 3px 5px; }
+    .header-info select.coef-select { width: 65px; }
+    .header-info input.salarie-input { width: 180px; font-size: 11px; }
+    .type-btn { padding: 3px 8px; font-size: 10px; }
+    .total-bar { font-size: 13px; padding: 6px 14px; }
+    .total-bar .value { font-size: 18px; padding: 3px 12px; min-width: 150px; }
+    .btn { padding: 4px 14px; font-size: 11px; }
+  }
+
+  @media (max-width: 1000px) {
+    html, body { height: auto; overflow: auto; }
+    .container { height: auto; max-height: none; }
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 650px) {
+    .grid { grid-template-columns: 1fr; }
+    .header-info { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>CALCUL TRAITEMENT SALAIRE  </h1>
+  <div style="text-align: right;">
+  <p>(Amrani Mokhtar)</p>
+   </div>
+   
+  <p class="subtitle">
+    Sélectionnez le <strong>Type de Personnel</strong> puis remplissez les champs correspondants
+  </p>
+
+  <div class="type-bar">
+    <label>TYPE :</label>
+    <button type="button" class="type-btn active" data-type="1" onclick="setType(1)">1. Titulaire</button>
+    <button type="button" class="type-btn" data-type="2" onclick="setType(2)">2. Fonction Supérieure</button>
+    <button type="button" class="type-btn" data-type="3" onclick="setType(3)">3. Contractuel Temps Plein</button>
+    <button type="button" class="type-btn" data-type="4" onclick="setType(4)">4. Contractuel Temps Partiel</button>
+  </div>
+
+  <div class="header-info">
+    <div>
+      <label>NOM &amp; PRÉNOM :</label>
+      <input type="text" id="nomSalarie" class="salarie-input" value="" placeholder="Nom & Prénom du salarié" oninput="calculer()">
+    </div>
+
+    <div>
+      <label>CATEG :</label>
+      <select id="categ" onchange="onCategChange()"></select>
+      <span class="info-note" id="categNote">0 à 17 + S1 à S7</span>
+    </div>
+
+    <div class="champ-echel-container" id="champEchel">
+      <label>ECHELON :</label>
+      <select id="echel" onchange="onEchelChange()"></select>
+      <span class="info-note">0 à 12</span>
+    </div>
+
+    <div class="champ-annees-container" id="champAnnees">
+      <label>NOMBRE D'ANNÉES :</label>
+      <input type="number" id="nbAnnees" class="champ-annees" value="0" min="0" max="60" oninput="calculer()">
+      <span class="info-note">Années travaillées</span>
+    </div>
+
+    <div class="champ-bonif-container" id="champBonif">
+      <label>BONIF :</label>
+      <select id="bonif" onchange="onBonifChange()"></select>
+      <span class="info-note">0 à 14</span>
+    </div>
+
+    <div>
+      <label>COEF :</label>
+      <select id="coef" onchange="onCoefChange()" class="coef-select"></select>
+      <span class="info-note" id="coefNote">19 à 60</span>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <div class="panel-title">TRAIT PRINCIPAL ET BONIF</div>
+      <table class="calc">
+        <tr>
+          <td class="label">BASE</td>
+          <td><input type="text" id="baseTaux" readonly></td>
+          <td><input type="text" id="baseMontant" class="calc-result" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">I EP</td>
+          <td><input type="text" id="iepTaux" readonly></td>
+          <td><input type="text" id="iepMontant" class="calc-result" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">BONIF</td>
+          <td><input type="text" id="bonifTaux" readonly></td>
+          <td><input type="text" id="bonifMontant" class="calc-result" readonly></td>
+        </tr>
+        <tr>
+          <td class="label" style="font-weight:700;">TOTAL</td>
+          <td></td>
+          <td><input type="text" id="totalTrait" class="calc-result" readonly></td>
+        </tr>
+      </table>
+
+      <!-- PRIME DE RENDEMENT -->
+      <div class="prime-title">CALCUL PRIME DE RENDEMENT</div>
+      <table class="calc">
+        <tr>
+          <td class="label">TX (%)</td>
+          <td><input type="number" id="primeTx" value="0" step="0.01" class="saisie" oninput="calculer()"></td>
+          <td><input type="text" id="primeTxAff" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">NOTE /20</td>
+          <td colspan="2"><input type="number" id="primeNote" value="0" min="0" max="20" step="0.5" class="saisie" oninput="calculer()"></td>
+        </tr>
+        <tr>
+          <td class="label">MT BRUTE</td>
+          <td colspan="2"><input type="text" id="primeBrute" class="calc-result" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">SS 9%</td>
+          <td colspan="2"><input type="text" id="primeSs" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">IRG 10%</td>
+          <td colspan="2"><input type="text" id="primeIrg" readonly></td>
+        </tr>
+        <tr>
+          <td class="label" style="font-weight:700;">NET TRIM.</td>
+          <td colspan="2"><input type="text" id="primeNet" class="calc-result" readonly></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title green">DIVERS INDEMNITÉS</div>
+      <table class="calc">
+        <tr><td colspan="3" class="group-title">PAR TAUX (× BASE+I EP)</td></tr>
+        <tr>
+          <td class="label">TX IND COT &amp; IMP</td>
+          <td><input type="number" id="txCotImp" value="0.00" step="0.01" class="taux" oninput="calculer()"></td>
+          <td><input type="text" id="mtCotImp" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">TX IND COT</td>
+          <td><input type="number" id="txCot" value="0" step="0.01" class="taux" oninput="calculer()"></td>
+          <td><input type="text" id="mtCot" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">TX IND IMP</td>
+          <td><input type="number" id="txImp" value="0" step="0.01" class="taux" oninput="calculer()"></td>
+          <td><input type="text" id="mtImp" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">TX IND N COT &amp; N IMP</td>
+          <td><input type="number" id="txNCotNImp" value="0" step="0.01" class="taux" oninput="calculer()"></td>
+          <td><input type="text" id="mtNCotNImp" readonly></td>
+        </tr>
+
+        <tr><td colspan="3" class="group-title">MONTANTS À AJOUTER</td></tr>
+        <tr>
+          <td class="label">MT IND 1</td>
+          <td colspan="2"><input type="number" id="mtInd1" value="0" step="0.01" class="saisie" oninput="calculer()"></td>
+        </tr>
+        <tr>
+          <td class="label">MT IND 2</td>
+          <td colspan="2"><input type="number" id="mtInd2" value="0" step="0.01" class="saisie" oninput="calculer()"></td>
+        </tr>
+        <tr>
+          <td class="label">MT IND 3</td>
+          <td colspan="2"><input type="number" id="mtInd3" value="0" step="0.01" class="saisie" oninput="calculer()"></td>
+        </tr>
+        <tr>
+          <td class="label">MT IND 4</td>
+          <td colspan="2"><input type="number" id="mtInd4" value="0" step="0.01" class="saisie" oninput="calculer()"></td>
+        </tr>
+
+        <tr>
+          <td class="label" style="font-weight:700;">IND. COTISABLE</td>
+          <td colspan="2"><input type="text" id="indCotisable" class="calc-result" readonly></td>
+        </tr>
+        <tr>
+          <td class="label" style="font-weight:700;">TOTAL IND.</td>
+          <td colspan="2"><input type="text" id="totalInd" class="calc-result" readonly></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title orange">ALLOCATION FAM</div>
+      <table class="calc">
+        <tr>
+          <td class="label">ISU (O/N)</td>
+          <td><input type="text" id="isu" value="N" maxlength="1" oninput="calculer()" style="text-align:center;"></td>
+          <td><input type="text" id="isuMontant" class="calc-result" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">ENF (nb)</td>
+          <td><input type="number" id="enf" value="0" min="0" oninput="calculer()"></td>
+          <td><input type="text" id="enfMontant" class="calc-result" readonly></td>
+        </tr>
+        <tr>
+          <td class="label" style="font-weight:700;">TOTAL</td>
+          <td></td>
+          <td><input type="text" id="totalAlloc" class="calc-result" readonly></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title red">DIVERS RETENUES</div>
+      <table class="calc">
+        <tr>
+          <td class="label">SOUMIS (9%)</td>
+          <td><input type="number" id="ssTx" value="0.09" step="0.01" class="taux" oninput="calculer()"></td>
+          <td><input type="text" id="soumisBase" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">SS (9%)</td>
+          <td colspan="2"><input type="text" id="ssMt" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">IRG</td>
+          <td colspan="2"><input type="text" id="irgMt" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">AUT TX</td>
+          <td><input type="number" id="autTx" value="0" step="0.01" oninput="calculer()"></td>
+          <td><input type="text" id="autMt" readonly></td>
+        </tr>
+
+        <tr><td colspan="3" class="group-title">MUTUEL / FSR / RETENUES</td></tr>
+        <tr>
+          <td class="label">MUTUEL (O/N) 1.5%</td>
+          <td><input type="text" id="mutOn" value="N" maxlength="1" class="on-off" oninput="calculer()"></td>
+          <td><input type="text" id="mutMt" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">FSR (O/N) 1%</td>
+          <td><input type="text" id="fsrOn" value="N" maxlength="1" class="on-off" oninput="calculer()"></td>
+          <td><input type="text" id="fsrMt" readonly></td>
+        </tr>
+        <tr>
+          <td class="label">RETENUE MT 1</td>
+          <td colspan="2"><input type="number" id="retMt1" value="0" step="0.01" class="saisie" oninput="calculer()"></td>
+        </tr>
+        <tr>
+          <td class="label">RETENUE MT 2</td>
+          <td colspan="2"><input type="number" id="retMt2" value="0" step="0.01" class="saisie" oninput="calculer()"></td>
+        </tr>
+
+        <tr>
+          <td class="label" style="font-weight:700;">TOTAL</td>
+          <td></td>
+          <td><input type="text" id="totalRet" class="retenue" readonly></td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="total-bar">
+    <span>NET A PAYER :</span>
+    <span class="value" id="netAPayer">0,00</span>
+  </div>
+
+  <div class="btn-bar">
+    <button class="btn btn-print" onclick="imprimerPDF()">🖨️ Imprimer / Exporter PDF</button>
+    <button class="btn btn-reset" onclick="resetForm()">Réinitialiser</button>
+  </div>
+
+</div>
+
+<!-- ZONE D'IMPRESSION -->
+<div id="printArea">
+  <div class="rp-header">
+    <div class="rp-rep">République Algérienne Démocratique et Populaire</div>
+    <div class="rp-title">RELEVÉ DES ÉMOLUMENTS</div>
+    <div class="rp-sub" id="rpTypePersonnel" style="font-size:11px; color:#1a3a6b; font-weight:700; margin-top:4px;"></div>
+  </div>
+
+  <div class="rp-info">
+    <div>
+      <strong>Nom &amp; Prénom :</strong> <span id="rpNom">—</span>
+    </div>
+    <div id="rpDetails"></div>
+  </div>
+
+  <div class="rp-cols">
+    <div>
+      <h4 class="green">GAINS</h4>
+      <table class="rp-table">
+        <tr><td class="lbl">BASE</td><td class="val" id="rpBase">—</td></tr>
+        <tr><td class="lbl">I EP</td><td class="val" id="rpIep">—</td></tr>
+        <tr><td class="lbl">BONIFICATION</td><td class="val" id="rpBonifM">—</td></tr>
+        <tr><td class="lbl"><strong>TOTAL TRAIT</strong></td><td class="val" id="rpTotalTrait">—</td></tr>
+        <tr><td class="lbl">TX IND COT &amp; IMP</td><td class="val" id="rpMtCotImp">—</td></tr>
+        <tr><td class="lbl">TX IND COT</td><td class="val" id="rpMtCot">—</td></tr>
+        <tr><td class="lbl">TX IND IMP</td><td class="val" id="rpMtImp">—</td></tr>
+        <tr><td class="lbl">TX IND N COT &amp; N IMP</td><td class="val" id="rpMtNCotNImp">—</td></tr>
+        <tr><td class="lbl">MT IND 1</td><td class="val" id="rpMtInd1">—</td></tr>
+        <tr><td class="lbl">MT IND 2</td><td class="val" id="rpMtInd2">—</td></tr>
+        <tr><td class="lbl">MT IND 3</td><td class="val" id="rpMtInd3">—</td></tr>
+        <tr><td class="lbl">MT IND 4</td><td class="val" id="rpMtInd4">—</td></tr>
+        <tr><td class="lbl"><strong>TOTAL IND.</strong></td><td class="val" id="rpTotalInd">—</td></tr>
+        <tr><td class="lbl">ALLOCATION ISU</td><td class="val" id="rpIsu">—</td></tr>
+        <tr><td class="lbl">ALLOCATION ENF</td><td class="val" id="rpEnf">—</td></tr>
+        <tr><td class="lbl"><strong>TOTAL ALLOC.</strong></td><td class="val" id="rpTotalAlloc">—</td></tr>
+      </table>
+    </div>
+
+    <div>
+      <h4 class="red">RETENUES</h4>
+      <table class="rp-table">
+        <tr><td class="lbl">SOUMIS </td><td class="val" id="rpSoumis">—</td></tr>
+        <tr><td class="lbl">SS </td><td class="val" id="rpSsMt">—</td></tr>
+        <tr><td class="lbl">IRG </td><td class="val" id="rpIrg">—</td></tr>
+        <tr><td class="lbl">AUT. RETENUE</td><td class="val" id="rpAut">—</td></tr>
+        <tr><td class="lbl">MUTUEL (1,5%)</td><td class="val" id="rpMut">—</td></tr>
+        <tr><td class="lbl">FSR (1%)</td><td class="val" id="rpFsr">—</td></tr>
+        <tr><td class="lbl">RETENUE MT 1</td><td class="val" id="rpRet1">—</td></tr>
+        <tr><td class="lbl">RETENUE MT 2</td><td class="val" id="rpRet2">—</td></tr>
+        <tr><td class="lbl"><strong>TOTAL RETENUES</strong></td><td class="val" id="rpTotalRet">—</td></tr>
+      </table>
+
+      <h4 style="margin-top:10px;">RÉCAPITULATIF</h4>
+      <table class="rp-table">
+        <tr><td class="lbl">TOTAL GAINS</td><td class="val" id="rpTotalGains">—</td></tr>
+        <tr><td class="lbl">TOTAL RETENUES</td><td class="val" id="rpTotalRet2">—</td></tr>
+      </table>
+
+      <h4 class="purple" style="margin-top:10px;">PRIME DE RENDEMENT (TRIM.)</h4>
+      <table class="rp-table">
+        <tr><td class="lbl">TAUX (%)</td><td class="val" id="rpPrimeTx">—</td></tr>
+        <tr><td class="lbl">NOTE /20</td><td class="val" id="rpPrimeNote">—</td></tr>
+        <tr><td class="lbl">MT BRUTE</td><td class="val" id="rpPrimeBrute">—</td></tr>
+        <tr><td class="lbl">SS 9%</td><td class="val" id="rpPrimeSs">—</td></tr>
+        <tr><td class="lbl">IRG 10%</td><td class="val" id="rpPrimeIrg">—</td></tr>
+        <tr><td class="lbl"><strong>NET TRIMESTRIEL</strong></td><td class="val" id="rpPrimeNet">—</td></tr>
+      </table>
+
+      <h4 class="purple" style="margin-top:10px;">PRIME MENSUELLE (÷ 3)</h4>
+      <table class="rp-table">
+        <tr><td class="lbl">MT BRUTE MENSUEL</td><td class="val" id="rpPrimeBruteM">—</td></tr>
+        <tr><td class="lbl">SS 9% MENSUEL</td><td class="val" id="rpPrimeSsM">—</td></tr>
+        <tr><td class="lbl">IRG 10% MENSUEL</td><td class="val" id="rpPrimeIrgM">—</td></tr>
+        <tr><td class="lbl"><strong>NET PRIME MENSUEL</strong></td><td class="val" id="rpPrimeNetM">—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="rp-total">
+    <span class="lbl">NET TRAITEMENT :</span>
+    <span class="val" id="rpNet">—</span>
+  </div>
+
+  <div class="rp-total" style="background:#6a1b9a; margin-top:6px;">
+    <span class="lbl">NET PRIME MENSUEL :</span>
+    <span class="val" id="rpNetPrime">—</span>
+  </div>
+
+  <div class="rp-total" style="background:#1f7a4d; margin-top:6px;">
+    <span class="lbl">TOTAL NET À PAYER :</span>
+    <span class="val" id="rpNetTotal">—</span>
+  </div>
+
+  <div class="rp-signatures">
+    <div>
+      <div class="sig-title">L'Intéressé</div>
+      <div class="sig-line">Signature</div>
+    </div>
+    <div>
+      <div class="sig-title">Le Chef de Service</div>
+      <div class="sig-line">Signature</div>
+    </div>
+    <div>
+      <div class="sig-title">Le Directeur</div>
+      <div class="sig-line">Signature &amp; Cachet</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let TYPE_PERSONNEL = 1;
+
+const CATEG_TABLE = {
+  0:  { grade: 0,  bases: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  1:  { grade: 400,  bases: [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240] },
+  2:  { grade: 419,  bases: [0, 21, 42, 63, 84, 105, 126, 147, 168, 189, 210, 230, 251] },
+  3:  { grade: 440,  bases: [0, 22, 44, 66, 88, 110, 132, 154, 176, 198, 220, 242, 264] },
+  4:  { grade: 463,  bases: [0, 23, 46, 69, 93, 116, 139, 162, 185, 208, 232, 255, 278] },
+  5:  { grade: 488,  bases: [0, 24, 49, 73, 98, 122, 146, 171, 195, 220, 244, 268, 293] },
+  6:  { grade: 515,  bases: [0, 26, 52, 77, 103, 129, 155, 180, 206, 232, 258, 283, 309] },
+  7:  { grade: 548,  bases: [0, 27, 55, 82, 110, 137, 164, 192, 219, 247, 274, 301, 329] },
+  8:  { grade: 579,  bases: [0, 29, 58, 87, 116, 145, 174, 203, 232, 261, 290, 318, 347] },
+  9:  { grade: 618,  bases: [0, 31, 62, 93, 124, 155, 185, 216, 247, 278, 309, 340, 371] },
+  10: { grade: 653,  bases: [0, 33, 65, 98, 131, 163, 196, 229, 261, 294, 327, 359, 392] },
+  11: { grade: 698,  bases: [0, 35, 70, 105, 140, 175, 209, 244, 279, 314, 349, 384, 419] },
+  12: { grade: 737,  bases: [0, 37, 74, 111, 147, 184, 221, 258, 295, 332, 369, 405, 442] },
+  13: { grade: 778,  bases: [0, 39, 78, 117, 156, 195, 233, 272, 311, 350, 389, 428, 467] },
+  14: { grade: 821,  bases: [0, 41, 82, 123, 164, 205, 246, 287, 328, 369, 411, 452, 493] },
+  15: { grade: 866,  bases: [0, 43, 87, 130, 173, 217, 260, 303, 346, 390, 433, 476, 520] },
+  16: { grade: 913,  bases: [0, 46, 91, 137, 183, 228, 274, 320, 365, 411, 457, 502, 548] },
+  17: { grade: 962,  bases: [0, 48, 96, 144, 192, 241, 289, 337, 385, 433, 481, 529, 577] },
+  'S1': { grade: 1130, bases: [0, 57,113, 170, 226, 283, 339, 396, 452, 509, 565, 622, 678] },
+  'S2': { grade: 1190, bases: [0, 60,119, 179, 238, 298, 357, 417, 476, 536, 595, 655, 714] },
+  'S3': { grade: 1255, bases: [0, 63,126, 188, 251, 314, 377, 439, 502, 565, 628, 690, 753] },
+  'S4': { grade: 1325, bases: [0, 66,133, 199, 265, 331, 398, 464, 530, 596, 663, 729, 795] },
+  'S5': { grade: 1400, bases: [0, 70,140, 210, 280, 350, 420, 490, 560, 630, 700, 770, 840] },
+  'S6': { grade: 1480, bases: [0, 74,148, 222, 296, 370, 444, 518, 592, 666, 740, 814, 888] },
+  'S7': { grade: 1680, bases: [0, 84,168, 252, 336, 420, 504, 588, 672, 756, 840, 924,1008] },
+  'A1': { grade: 3352, bases: [0, 177, 355, 532, 710,  888,  1065, 1243, 1420, 1598, 1776, 1953, 2131] },
+  'A2': { grade: 3735, bases: [0, 187, 374, 561, 747,  934,  1121, 1308, 1495, 1681, 1868, 2055, 2242] },
+  'B1': { grade: 3919, bases: [0, 196, 392, 588, 784,  980,  1176, 1372, 1568, 1764, 1960, 2156, 2352] },
+  'B2': { grade: 4103, bases: [0, 205, 410, 615, 820,  1026, 1231, 1436, 1641, 1846, 2051, 2256, 2461] },
+  'C1': { grade: 4287, bases: [0, 214, 428, 642, 857,  1071, 1285, 1500, 1714, 1928, 2143, 2357, 2571] },
+  'C2': { grade: 4470, bases: [0, 227, 447, 671, 894,  1118, 1341, 1565, 1788, 2012, 2235, 2459, 2682] },
+  'D1': { grade: 4654, bases: [0, 233, 465, 698, 931,  1163, 1396, 1629, 1862, 2094, 2327, 2560, 2792] },
+  'D2': { grade: 4838, bases: [0, 242, 483, 725, 967,  1209, 1451, 1693, 1935, 2177, 2418, 2660, 2902] },
+  'E1': { grade: 5021, bases: [0, 251, 502, 754, 1005, 1256, 1507, 1758, 2009, 2260, 2511, 2762, 3013] },
+  'E2': { grade: 5205, bases: [0, 260, 521, 781, 1041, 1301, 1562, 1822, 2082, 2342, 2603, 2863, 3123] },
+  'F1': { grade: 5389, bases: [0, 279, 539, 808, 1078, 1347, 1616, 1886, 2155, 2425, 2694, 2964, 3233] },
+  'F2': { grade: 5572, bases: [0, 279, 558, 836, 1115, 1394, 1672, 1951, 2229, 2508, 2787, 3065, 3440] },
+  'G1': { grade: 5736, bases: [0, 308, 596, 884, 1171, 1459, 1747, 2035, 2323, 2610, 2898, 3186, 3474] }
+};
+
+const BONIF_TABLE = {
+  0: 0, 1: 115, 2: 125, 3: 135, 4: 145, 5: 155, 6: 195,
+  7: 235, 8: 285, 9: 345, 10: 415, 11: 495, 12: 585, 13: 685, 14: 795
+};
+
+const TAUX_MUTUEL = 0.015;
+const TAUX_FSR    = 0.01;
+
+const TAUX_ANNUEL_CONTRACTUEL = 0.014;
+const COEF_TEMPS_PARTIEL = 5 / 8;
+
+let COEF = 45;
+
+function irg2022(valConv) {
+  if (valConv === null || valConv === undefined || isNaN(valConv)) return 0;
+  const val = parseFloat(valConv);
+  if (isNaN(val)) return 0;
+
+  let irg1, abat;
+
+  if (val < 20001) return 0;
+
+  if (val > 20000 && val < 40001) {
+    irg1 = (Math.trunc(val / 10) * 10 - 20000) * 23 / 100;
+    abat = irg1 * 40 / 100;
+    if (abat < 1000) abat = 1000;
+    if (abat > 1500) abat = 1500;
+    let irg = irg1 - abat;
+    if (abat > irg1) irg = 0;
+    if (val < 30001) return 0;
+    if (val > 30000 && val < 35001) {
+      irg = Math.round(irg * (137 / 51) - (27925 / 8));
+      return irg;
+    }
+    return irg;
+  }
+
+  if (val > 40000 && val < 80001) {
+    irg1 = 4600 + (Math.trunc(val / 10) * 10 - 40000) * 27 / 100;
+    abat = irg1 * 40 / 100;
+    if (abat < 1000) abat = 1000;
+    if (abat > 1500) abat = 1500;
+    let irg = irg1 - abat;
+    if (abat > irg1) irg = 0;
+    return irg;
+  }
+
+  if (val > 80000 && val < 160001) {
+    irg1 = 15400 + (Math.trunc(val / 10) * 10 - 80000) * 30 / 100;
+    abat = irg1 * 40 / 100;
+    if (abat < 1000) abat = 1000;
+    if (abat > 1500) abat = 1500;
+    let irg = irg1 - abat;
+    if (abat > irg1) irg = 0;
+    return irg;
+  }
+
+  if (val > 160000 && val < 320001) {
+    irg1 = 39400 + (Math.trunc(val / 10) * 10 - 160000) * 33 / 100;
+    abat = irg1 * 40 / 100;
+    if (abat < 1000) abat = 1000;
+    if (abat > 1500) abat = 1500;
+    let irg = irg1 - abat;
+    if (abat > irg1) irg = 0;
+    return irg;
+  }
+
+  if (val > 320000) {
+    irg1 = 92200 + Math.trunc((val / 10) * 10 - 320000) * 35 / 100;
+    abat = irg1 * 40 / 100;
+    if (abat < 1000) abat = 1000;
+    if (abat > 1500) abat = 1500;
+    let irg = irg1 - abat;
+    if (abat > irg1) irg = 0;
+    return irg;
+  }
+
+  return 0;
+}
+
+function fmt(n) {
+  if (isNaN(n) || n === null || n === undefined) return '0,00';
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function setType(type) {
+  TYPE_PERSONNEL = type;
+
+  document.querySelectorAll('.type-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.type) === type);
+  });
+
+  const isType1 = (type === 1);
+  const isType2 = (type === 2);
+  const isType34 = (type === 3 || type === 4);
+
+  document.getElementById('champEchel').style.display = (isType1 || isType2) ? 'flex' : 'none';
+  document.getElementById('champAnnees').style.display = isType34 ? 'flex' : 'none';
+  document.getElementById('champBonif').style.display = isType1 ? 'flex' : 'none';
+
+  const selCateg = document.getElementById('categ');
+  const categNote = document.getElementById('categNote');
+  selCateg.innerHTML = '';
+
+  if (isType1 || isType34) {
+    for (let c = 0; c <= 17; c++) {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      selCateg.appendChild(opt);
+    }
+    ['S1','S2','S3','S4','S5','S6','S7'].forEach(code => {
+      const opt = document.createElement('option');
+      opt.value = code; opt.textContent = code;
+      selCateg.appendChild(opt);
+    });
+    selCateg.value = 0;
+    categNote.textContent = '0 à 17 + S1 à S7';
+  } else if (isType2) {
+    const listFS = ['A1','A2','B1','B2','C1','C2','D1','D2','E1','E2','F1','F2','G1'];
+    listFS.forEach(code => {
+      const opt = document.createElement('option');
+      opt.value = code; opt.textContent = code;
+      selCateg.appendChild(opt);
+    });
+    selCateg.value = 'A1';
+    categNote.textContent = 'A1 à G1';
+  }
+
+  const selCoef = document.getElementById('coef');
+  const coefNote = document.getElementById('coefNote');
+  selCoef.innerHTML = '';
+
+  if (isType1) {
+    for (let k = 45; k <= 60; k++) {
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = k;
+      selCoef.appendChild(opt);
+    }
+    selCoef.value = 45;
+    COEF = 45;
+    coefNote.textContent = '19 à 60';
+  } else if (isType2) {
+    for (let k = 19; k <= 30; k++) {
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = k;
+      selCoef.appendChild(opt);
+    }
+    selCoef.value = 19;
+    COEF = 19;
+    coefNote.textContent = '19 à 30';
+  } else {
+    for (let k = 45; k <= 60; k++) {
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = k;
+      selCoef.appendChild(opt);
+    }
+    selCoef.value = 45;
+    COEF = 45;
+    coefNote.textContent = '45 à 60';
+  }
+
+  onCategChange();
+}
+
+function initSelects() {
+  const selBonif = document.getElementById('bonif');
+  selBonif.innerHTML = '';
+  for (let b = 0; b <= 14; b++) {
+    const opt = document.createElement('option');
+    opt.value = b; opt.textContent = b;
+    selBonif.appendChild(opt);
+  }
+  selBonif.value = 0;
+
+  setType(1);
+}
+
+function onCategChange() {
+  const categ = document.getElementById('categ').value;
+  const data = CATEG_TABLE[categ];
+  if (!data) return;
+
+  const selEchel = document.getElementById('echel');
+  selEchel.innerHTML = '';
+  for (let e = 0; e < data.bases.length; e++) {
+    const opt = document.createElement('option');
+    opt.value = e; opt.textContent = e;
+    selEchel.appendChild(opt);
+  }
+  selEchel.value = 0;
+  calculer();
+}
+
+function onEchelChange() { calculer(); }
+function onBonifChange() { calculer(); }
+function onCoefChange() {
+  COEF = parseInt(document.getElementById('coef').value) || 45;
+  calculer();
+}
+
+function calculer() {
+  const categ    = document.getElementById('categ').value;
+  COEF = parseInt(document.getElementById('coef').value) || 45;
+
+  const data = CATEG_TABLE[categ];
+  if (!data) return;
+
+  const facteurTP = (TYPE_PERSONNEL === 4) ? COEF_TEMPS_PARTIEL : 1;
+
+  const baseTaux    = data.grade;
+  const baseMontant = baseTaux * COEF * facteurTP;
+
+  let iepTaux = 0;
+  let iepMontant = 0;
+
+  if (TYPE_PERSONNEL === 1 || TYPE_PERSONNEL === 2) {
+    const echel = parseInt(document.getElementById('echel').value);
+    iepTaux    = data.bases[Math.min(echel, data.bases.length - 1)] || 0;
+    iepMontant = iepTaux * COEF;
+  } else {
+    const nbAnnees = parseInt(document.getElementById('nbAnnees').value) || 0;
+    iepTaux    = nbAnnees * TAUX_ANNUEL_CONTRACTUEL * 100;
+    iepMontant = nbAnnees * TAUX_ANNUEL_CONTRACTUEL * baseMontant;
+  }
+
+  let bonifTaux = 0;
+  let bonifMontant = 0;
+
+  if (TYPE_PERSONNEL === 1) {
+    const bonifEch = parseInt(document.getElementById('bonif').value);
+    bonifTaux    = BONIF_TABLE[bonifEch] || 0;
+    bonifMontant = bonifTaux * COEF;
+  }
+
+  const totalTrait = baseMontant + iepMontant + bonifMontant;
+
+  document.getElementById('baseTaux').value     = baseTaux;
+  document.getElementById('iepTaux').value      = (TYPE_PERSONNEL === 1 || TYPE_PERSONNEL === 2) ? iepTaux : fmt(iepTaux) + ' %';
+  document.getElementById('bonifTaux').value    = bonifTaux;
+  document.getElementById('baseMontant').value  = fmt(baseMontant);
+  document.getElementById('iepMontant').value   = fmt(iepMontant);
+  document.getElementById('bonifMontant').value = fmt(bonifMontant);
+  document.getElementById('totalTrait').value   = fmt(totalTrait);
+
+  const baseInd = baseMontant + iepMontant;
+
+  /* PRIME DE RENDEMENT */
+  const primeTx   = parseFloat(document.getElementById('primeTx').value) || 0;
+  const primeNote = parseFloat(document.getElementById('primeNote').value) || 0;
+
+  document.getElementById('primeTxAff').value = primeTx + ' %';
+
+  const primeBrute = 3 * baseInd * (primeTx / 100) * (primeNote / 20);
+  const primeSs    = primeBrute * 0.09;
+  const primeIrg   = (primeBrute - primeSs) * 0.10;
+  const primeNet   = primeBrute - primeSs - primeIrg;
+
+  document.getElementById('primeBrute').value = fmt(primeBrute);
+  document.getElementById('primeSs').value    = fmt(primeSs);
+  document.getElementById('primeIrg').value   = fmt(primeIrg);
+  document.getElementById('primeNet').value   = fmt(primeNet);
+
+  /* DIVERS INDEMNITÉS */
+  const txCotImp   = parseFloat(document.getElementById('txCotImp').value) || 0;
+  const ssTx       = parseFloat(document.getElementById('ssTx').value) || 0;
+  const txCot      = parseFloat(document.getElementById('txCot').value) || 0;
+  const txImp      = parseFloat(document.getElementById('txImp').value) || 0;
+  const txNCotNImp = parseFloat(document.getElementById('txNCotNImp').value) || 0;
+
+  const mtCotImp   = baseInd * txCotImp;
+  const mtCot      = baseInd * txCot;
+  const mtImp      = baseInd * txImp;
+  const mtNCotNImp = baseInd * txNCotNImp;
+
+  document.getElementById('mtCotImp').value     = fmt(mtCotImp);
+  document.getElementById('mtCot').value        = fmt(mtCot);
+  document.getElementById('mtImp').value        = fmt(mtImp);
+  document.getElementById('mtNCotNImp').value   = fmt(mtNCotNImp);
+
+  const mtInd1 = parseFloat(document.getElementById('mtInd1').value) || 0;
+  const mtInd2 = parseFloat(document.getElementById('mtInd2').value) || 0;
+  const mtInd3 = parseFloat(document.getElementById('mtInd3').value) || 0;
+  const mtInd4 = parseFloat(document.getElementById('mtInd4').value) || 0;
+
+  const totalTaux    = mtCotImp + mtCot + mtImp + mtNCotNImp;
+  const totalMontant = mtInd1 + mtInd2 + mtInd3 + mtInd4;
+  const totalInd     = totalTaux + totalMontant;
+
+  const indCotisable = mtCotImp + mtCot + mtNCotNImp;
+
+  document.getElementById('indCotisable').value = fmt(indCotisable);
+  document.getElementById('totalInd').value     = fmt(totalInd);
+
+  const isuVal = (document.getElementById('isu').value || '').trim().toUpperCase();
+  const isuMontant = (isuVal === 'O') ? 800 : 0;
+  document.getElementById('isuMontant').value = fmt(isuMontant);
+
+  const nbEnf = parseInt(document.getElementById('enf').value) || 0;
+  const enfMontant = nbEnf * 300;
+  document.getElementById('enfMontant').value = fmt(enfMontant);
+
+  const totalAlloc = isuMontant + enfMontant;
+  document.getElementById('totalAlloc').value = fmt(totalAlloc);
+
+  const soumis = totalTrait + mtCotImp + mtCot + mtInd1 + mtInd2;
+  const ssMt   = soumis * ssTx;
+
+  document.getElementById('soumisBase').value = fmt(soumis);
+  document.getElementById('ssMt').value       = fmt(ssMt);
+
+  const mutOn = (document.getElementById('mutOn').value || '').trim().toUpperCase();
+  const fsrOn = (document.getElementById('fsrOn').value || '').trim().toUpperCase();
+
+  const mutMt = (mutOn === 'O') ? soumis * TAUX_MUTUEL : 0;
+  const fsrMt = (fsrOn === 'O') ? soumis * TAUX_FSR    : 0;
+
+  document.getElementById('mutMt').value = fmt(mutMt);
+  document.getElementById('fsrMt').value = fmt(fsrMt);
+
+  const irgBase = totalTrait
+                + mtCotImp
+                + mtCot
+                + mtImp
+                + mtInd1
+                + mtInd3
+                - ssMt
+                - fsrMt;
+
+  const irgMt = irg2022(irgBase);
+  document.getElementById('irgMt').value = fmt(irgMt);
+
+  const autTx = parseFloat(document.getElementById('autTx').value) || 0;
+  const autMt = baseInd * autTx;
+  document.getElementById('autMt').value = fmt(autMt);
+
+  const retMt1 = parseFloat(document.getElementById('retMt1').value) || 0;
+  const retMt2 = parseFloat(document.getElementById('retMt2').value) || 0;
+
+  const totalRet = ssMt + irgMt + autMt + mutMt + fsrMt + retMt1 + retMt2;
+  document.getElementById('totalRet').value = fmt(totalRet);
+
+  const netAPayer = totalTrait + totalInd + totalAlloc - totalRet;
+  document.getElementById('netAPayer').textContent = fmt(netAPayer);
+}
+
+function imprimerPDF() {
+  const typesLabel = {
+    1: 'Personnel Titulaire',
+    2: 'Personnel occupant Fonction Supérieure',
+    3: 'Personnel Contractuel à Temps Plein',
+    4: 'Personnel Contractuel à Temps Partiel'
+  };
+  document.getElementById('rpTypePersonnel').textContent = typesLabel[TYPE_PERSONNEL];
+  document.getElementById('rpNom').textContent = document.getElementById('nomSalarie').value || '—';
+
+  const rpDetails = document.getElementById('rpDetails');
+  if (TYPE_PERSONNEL === 1 || TYPE_PERSONNEL === 2) {
+    rpDetails.innerHTML =
+      '<strong>CATEG :</strong> ' + document.getElementById('categ').value + ' &nbsp; ' +
+      '<strong>ÉCHELON :</strong> ' + document.getElementById('echel').value + ' &nbsp; ' +
+      (TYPE_PERSONNEL === 1 ? '<strong>BONIF :</strong> ' + document.getElementById('bonif').value + ' &nbsp; ' : '') +
+      '<strong>COEF :</strong> ' + document.getElementById('coef').value;
+  } else {
+    rpDetails.innerHTML =
+      '<strong>CATEG :</strong> ' + document.getElementById('categ').value + ' &nbsp; ' +
+      '<strong>ANNÉES :</strong> ' + document.getElementById('nbAnnees').value + ' &nbsp; ' +
+      '<strong>COEF :</strong> ' + document.getElementById('coef').value +
+      (TYPE_PERSONNEL === 4 ? ' &nbsp; <strong>(Base × 62,5%)</strong>' : '');
+  }
+
+  document.getElementById('rpBase').textContent        = document.getElementById('baseMontant').value;
+  document.getElementById('rpIep').textContent         = document.getElementById('iepMontant').value;
+  document.getElementById('rpBonifM').textContent      = document.getElementById('bonifMontant').value;
+  document.getElementById('rpTotalTrait').textContent  = document.getElementById('totalTrait').value;
+  document.getElementById('rpMtCotImp').textContent    = document.getElementById('mtCotImp').value;
+  document.getElementById('rpMtCot').textContent       = document.getElementById('mtCot').value;
+  document.getElementById('rpMtImp').textContent       = document.getElementById('mtImp').value;
+  document.getElementById('rpMtNCotNImp').textContent  = document.getElementById('mtNCotNImp').value;
+  document.getElementById('rpMtInd1').textContent      = document.getElementById('mtInd1').value;
+  document.getElementById('rpMtInd2').textContent      = document.getElementById('mtInd2').value;
+  document.getElementById('rpMtInd3').textContent      = document.getElementById('mtInd3').value;
+  document.getElementById('rpMtInd4').textContent      = document.getElementById('mtInd4').value;
+  document.getElementById('rpTotalInd').textContent    = document.getElementById('totalInd').value;
+  document.getElementById('rpIsu').textContent         = document.getElementById('isuMontant').value;
+  document.getElementById('rpEnf').textContent         = document.getElementById('enfMontant').value;
+  document.getElementById('rpTotalAlloc').textContent  = document.getElementById('totalAlloc').value;
+
+  document.getElementById('rpSoumis').textContent      = document.getElementById('soumisBase').value;
+  document.getElementById('rpSsMt').textContent        = document.getElementById('ssMt').value;
+  document.getElementById('rpIrg').textContent         = document.getElementById('irgMt').value;
+  document.getElementById('rpAut').textContent         = document.getElementById('autMt').value;
+  document.getElementById('rpMut').textContent         = document.getElementById('mutMt').value;
+  document.getElementById('rpFsr').textContent         = document.getElementById('fsrMt').value;
+  document.getElementById('rpRet1').textContent        = document.getElementById('retMt1').value;
+  document.getElementById('rpRet2').textContent        = document.getElementById('retMt2').value;
+  document.getElementById('rpTotalRet').textContent    = document.getElementById('totalRet').value;
+  document.getElementById('rpTotalRet2').textContent   = document.getElementById('totalRet').value;
+
+  /* PRIME DE RENDEMENT (trimestriel) */
+  document.getElementById('rpPrimeTx').textContent     = document.getElementById('primeTx').value;
+  document.getElementById('rpPrimeNote').textContent   = document.getElementById('primeNote').value;
+  document.getElementById('rpPrimeBrute').textContent  = document.getElementById('primeBrute').value;
+  document.getElementById('rpPrimeSs').textContent     = document.getElementById('primeSs').value;
+  document.getElementById('rpPrimeIrg').textContent    = document.getElementById('primeIrg').value;
+  document.getElementById('rpPrimeNet').textContent    = document.getElementById('primeNet').value;
+
+  /* ✅ PRIME MENSUELLE (÷ 3) */
+  const primeBruteNum = parseFloat(document.getElementById('primeBrute').value.replace(/\s/g,'').replace(',','.')) || 0;
+  const primeSsNum    = parseFloat(document.getElementById('primeSs').value.replace(/\s/g,'').replace(',','.')) || 0;
+  const primeIrgNum   = parseFloat(document.getElementById('primeIrg').value.replace(/\s/g,'').replace(',','.')) || 0;
+  const primeNetNum   = parseFloat(document.getElementById('primeNet').value.replace(/\s/g,'').replace(',','.')) || 0;
+
+  document.getElementById('rpPrimeBruteM').textContent = fmt(primeBruteNum / 3);
+  document.getElementById('rpPrimeSsM').textContent    = fmt(primeSsNum / 3);
+  document.getElementById('rpPrimeIrgM').textContent   = fmt(primeIrgNum / 3);
+  document.getElementById('rpPrimeNetM').textContent   = fmt(primeNetNum / 3);
+
+  const totalTraitNum = parseFloat(document.getElementById('totalTrait').value.replace(/\s/g,'').replace(',','.')) || 0;
+  const totalIndNum   = parseFloat(document.getElementById('totalInd').value.replace(/\s/g,'').replace(',','.')) || 0;
+  const totalAllocNum = parseFloat(document.getElementById('totalAlloc').value.replace(/\s/g,'').replace(',','.')) || 0;
+  const totalGains    = totalTraitNum + totalIndNum + totalAllocNum;
+  document.getElementById('rpTotalGains').textContent = fmt(totalGains);
+
+  /* ✅ NET TRAITEMENT + NET PRIME MENSUEL + TOTAL NET */
+  const netTraitNum = parseFloat(document.getElementById('netAPayer').textContent.replace(/\s/g,'').replace(',','.')) || 0;
+  const netPrimeM   = primeNetNum / 3;
+  const totalNet    = netTraitNum + netPrimeM;
+
+  document.getElementById('rpNet').textContent      = fmt(netTraitNum);
+  document.getElementById('rpNetPrime').textContent = fmt(netPrimeM);
+  document.getElementById('rpNetTotal').textContent = fmt(totalNet);
+
+  const nom = (document.getElementById('nomSalarie').value || 'SALARIE').trim();
+  const nomFichier = nom.replace(/[\\/:*?"<>|]/g, '_') || 'RELEVE_EMOLUMENTS';
+  const titreOrigine = document.title;
+  document.title = nomFichier;
+
+  window.print();
+  setTimeout(() => { document.title = titreOrigine; }, 500);
+}
+
+function resetForm() {
+  document.getElementById('nomSalarie').value = '';
+  document.getElementById('bonif').value = 0;
+  document.getElementById('nbAnnees').value = 0;
+  document.getElementById('txCotImp').value = 0.00;
+  document.getElementById('txCot').value = 0;
+  document.getElementById('txImp').value = 0;
+  document.getElementById('txNCotNImp').value = 0;
+  document.getElementById('mtInd1').value = 0;
+  document.getElementById('mtInd2').value = 0;
+  document.getElementById('mtInd3').value = 0;
+  document.getElementById('mtInd4').value = 0;
+  document.getElementById('isu').value = 'N';
+  document.getElementById('enf').value = 0;
+  document.getElementById('autTx').value = 0;
+  document.getElementById('mutOn').value = 'N';
+  document.getElementById('fsrOn').value = 'N';
+  document.getElementById('retMt1').value = 0;
+  document.getElementById('retMt2').value = 0;
+  document.getElementById('primeTx').value = 0;
+  document.getElementById('primeNote').value = 0;
+  setType(1);
+  calculer();
+}
+
+window.addEventListener('DOMContentLoaded', initSelects);
+</script>
+
+</body>
+</html>
